@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # CORS debe ir aquí
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -225,13 +225,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# Configuración de cookies para cross-origin
-SESSION_COOKIE_SECURE = not DEBUG  # True en producción (HTTPS)
-CSRF_COOKIE_SECURE = not DEBUG     # True en producción (HTTPS)
-SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
-CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = False  # False para que JS pueda leerla
+
 
 #Aquí termina el nuevo CORS
 
@@ -277,3 +271,13 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 # Asegurar que la cookie CSRF se envíe
 #CSRF_COOKIE_HTTPONLY = False  # Debe ser False para que JavaScript pueda leerla
+
+
+#ESTO ES PARTE DE LA MODIFICACIÓN DEL NUEVO CSRF
+# Configuración de cookies para cross-origin
+SESSION_COOKIE_SECURE = not DEBUG  # True en producción (HTTPS)
+CSRF_COOKIE_SECURE = False     # True en producción (HTTPS)
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE = None #if not DEBUG else 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # False para que JS pueda leerla
