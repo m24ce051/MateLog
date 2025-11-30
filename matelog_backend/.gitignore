@@ -1,0 +1,37 @@
+# Python
+*.py[cod]
+*$py.class
+*.so
+__pycache__/
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# Entorno virtual
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos sensibles
+.env
+*.secret
+
+# PostgreSQL
+*.sql
+
+# Archivos temporales
+*.bak
+*.tmp

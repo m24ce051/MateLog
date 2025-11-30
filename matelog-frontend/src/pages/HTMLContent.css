@@ -1,0 +1,224 @@
+/* Estilos para contenido HTML generado por TinyMCE */
+/* Este archivo se importa en TopicPage.jsx */
+
+.content-text h1,
+.exercise-question h1 {
+  font-size: 2em !important;
+  font-weight: bold !important;
+  margin: 20px 0 15px 0 !important;
+  color: #2c3e50 !important;
+}
+
+.content-text h2,
+.exercise-question h2 {
+  font-size: 1.7em !important;
+  font-weight: bold !important;
+  margin: 18px 0 12px 0 !important;
+  color: #34495e !important;
+}
+
+.content-text h3,
+.exercise-question h3 {
+  font-size: 1.4em !important;
+  font-weight: bold !important;
+  margin: 16px 0 10px 0 !important;
+  color: #34495e !important;
+}
+
+.content-text h4,
+.exercise-question h4 {
+  font-size: 1.2em !important;
+  font-weight: bold !important;
+  margin: 14px 0 8px 0 !important;
+  color: #34495e !important;
+}
+
+.content-text p,
+.exercise-question p {
+  margin: 12px 0 !important;
+  line-height: 1.7 !important;
+  text-align: justify !important;
+}
+
+.content-text strong,
+.content-text b,
+.exercise-question strong,
+.exercise-question b {
+  font-weight: 700 !important;
+  color: #2c3e50 !important;
+}
+
+.content-text em,
+.content-text i,
+.exercise-question em,
+.exercise-question i {
+  font-style: italic !important;
+}
+
+.content-text u,
+.exercise-question u {
+  text-decoration: underline !important;
+}
+
+.content-text ul,
+.exercise-question ul {
+  margin: 15px 0 15px 20px !important;
+  padding-left: 20px !important;
+  list-style-type: disc !important;
+}
+
+.content-text ol,
+.exercise-question ol {
+  margin: 15px 0 15px 20px !important;
+  padding-left: 20px !important;
+  list-style-type: decimal !important;
+}
+
+.content-text li,
+.exercise-question li {
+  margin: 8px 0 !important;
+  line-height: 1.6 !important;
+  display: list-item !important;
+}
+
+.content-text ul li,
+.exercise-question ul li {
+  list-style-type: disc !important;
+}
+
+.content-text ol li,
+.exercise-question ol li {
+  list-style-type: decimal !important;
+}
+
+.content-text a,
+.exercise-question a {
+  color: #667eea !important;
+  text-decoration: underline !important;
+}
+
+.content-text a:hover,
+.exercise-question a:hover {
+  color: #764ba2 !important;
+}
+
+.content-text blockquote,
+.exercise-question blockquote {
+  margin: 20px 0 !important;
+  padding: 15px 20px !important;
+  background: #f8f9fa !important;
+  border-left: 4px solid #667eea !important;
+  font-style: italic !important;
+  color: #555 !important;
+}
+
+.content-text code,
+.exercise-question code {
+  background: #f4f4f4 !important;
+  padding: 3px 6px !important;
+  border-radius: 4px !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 0.9em !important;
+  color: #e83e8c !important;
+}
+
+.content-text pre,
+.exercise-question pre {
+  background: #2d2d2d !important;
+  color: #f8f8f2 !important;
+  padding: 15px !important;
+  border-radius: 6px !important;
+  overflow-x: auto !important;
+  margin: 20px 0 !important;
+}
+
+.content-text pre code,
+.exercise-question pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+}
+
+.content-text table,
+.exercise-question table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 20px 0 !important;
+  border: 1px solid #ddd !important;
+}
+
+.content-text table th,
+.exercise-question table th {
+  background: #667eea !important;
+  color: white !important;
+  padding: 12px !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  border: 1px solid #5568d3 !important;
+}
+
+.content-text table td,
+.exercise-question table td {
+  padding: 10px 12px !important;
+  border: 1px solid #ddd !important;
+}
+
+.content-text table tr:nth-child(even),
+.exercise-question table tr:nth-child(even) {
+  background: #f8f9fa !important;
+}
+
+.content-text table tr:hover,
+.exercise-question table tr:hover {
+  background: #e9ecef !important;
+}
+
+.content-text img,
+.exercise-question img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 20px auto !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.content-text hr,
+.exercise-question hr {
+  margin: 30px 0 !important;
+  border: none !important;
+  border-top: 2px solid #e0e0e0 !important;
+}
+
+/* Colores personalizados de TinyMCE */
+.content-text span[style*="color"],
+.exercise-question span[style*="color"] {
+  font-weight: 500 !important;
+}
+
+.content-text span[style*="background-color"],
+.exercise-question span[style*="background-color"] {
+  padding: 2px 5px !important;
+  border-radius: 3px !important;
+}
+
+/* Centrado de texto */
+.content-text [style*="text-align: center"],
+.exercise-question [style*="text-align: center"] {
+  text-align: center !important;
+}
+
+.content-text [style*="text-align: right"],
+.exercise-question [style*="text-align: right"] {
+  text-align: right !important;
+}
+
+.content-text [style*="text-align: left"],
+.exercise-question [style*="text-align: left"] {
+  text-align: left !important;
+}
+
+.content-text [style*="text-align: justify"],
+.exercise-question [style*="text-align: justify"] {
+  text-align: justify !important;
+}
