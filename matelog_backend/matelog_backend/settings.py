@@ -52,17 +52,24 @@ INSTALLED_APPS = [
     'tracking',
 ]
 
+# En settings.py, buscar MIDDLEWARE y reemplazar con:
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # CORS debe ir aquí
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+]
+
+# Solo agregar CSRF si DISABLE_CSRF no está en True
+if not os.environ.get('DISABLE_CSRF', 'False') == 'True':
+    MIDDLEWARE.insert(5, 'django.middleware.csrf.CsrfViewMiddleware')
+
+MIDDLEWARE.extend([
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+])
 
 ROOT_URLCONF = 'matelog_backend.urls'
 
