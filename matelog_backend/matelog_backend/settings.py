@@ -190,19 +190,64 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Obtener orígenes permitidos
+cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+
+csrf_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins.split(',') if origin.strip()]
+
+#Aquí empieza el nuevo CORS
+# Configuración adicional de CORS
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # NUNCA poner True en producción
+
+# Headers que el frontend puede enviar
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Métodos HTTP permitidos
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Configuración de cookies para cross-origin
+SESSION_COOKIE_SECURE = not DEBUG  # True en producción (HTTPS)
+CSRF_COOKIE_SECURE = not DEBUG     # True en producción (HTTPS)
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # False para que JS pueda leerla
+
+#Aquí termina el nuevo CORS
+
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173'
-).split(',')
+#CORS_ALLOWED_ORIGINS = os.environ.get(
+    #'CORS_ALLOWED_ORIGINS',
+    #'http://localhost:5173'
+#).split(',')
 
 # Configuración adicional para CSRF con frontend React
-CSRF_TRUSTED_ORIGINS = os.environ.get(
-    'CSRF_TRUSTED_ORIGINS',
-    'http://localhost:5173'
-).split(',')
+#CSRF_TRUSTED_ORIGINS = os.environ.get(
+    #'CSRF_TRUSTED_ORIGINS',
+    #'http://localhost:5173'
+#).split(',')
 
-CORS_ALLOW_CREDENTIALS = True
+#CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework Settings
 REST_FRAMEWORK = {
@@ -225,10 +270,10 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 
 # Permitir cookies de sesión cross-origin
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = False  # True solo en producción con HTTPS
-CSRF_COOKIE_SECURE = False     # True solo en producción con HTTPS
+#SESSION_COOKIE_SAMESITE = 'Lax'
+#CSRF_COOKIE_SAMESITE = 'Lax'
+#SESSION_COOKIE_SECURE = False  # True solo en producción con HTTPS
+#CSRF_COOKIE_SECURE = False     # True solo en producción con HTTPS
 
 # Asegurar que la cookie CSRF se envíe
-CSRF_COOKIE_HTTPONLY = False  # Debe ser False para que JavaScript pueda leerla
+#CSRF_COOKIE_HTTPONLY = False  # Debe ser False para que JavaScript pueda leerla
