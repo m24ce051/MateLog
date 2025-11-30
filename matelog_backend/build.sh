@@ -17,8 +17,8 @@ User = get_user_model()
 if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser(
         username='admin',
-        email='admin@matelog.com',
-        password='matelog123'
+        email='',
+        password='C3n1d3t!'
     )
     print('✅ Superusuario admin creado')
 else:
