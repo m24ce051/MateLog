@@ -31,40 +31,98 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      setLoading(true);
+      setError(null);
+    
       const data = await authService.login(credentials);
-      // CORRECCIÓN: El backend devuelve 'usuario', no 'user'
       const userData = data.usuario || data.user;
-      setUser(userData);
+    
+      if (userData) {
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        navigate('/lecciones');
+      } else {
+        throw new Error('No se recibieron datos del usuario');
+      }
+    } catch (err) {
+      console.error('Error en login:', err);
+    
+      // Manejar diferentes tipos de errores
+      let errorMessage = 'Error al iniciar sesión';
+    
+      if (err.response?.data) {
+        const errorData = err.response.data;
       
-      // Iniciar sesión de estudio
-      const session = await trackingService.startSession();
-      setSessionId(session.sesion_id);
-      
-      return { success: true, user: userData };
-    } catch (error) {
-      console.error('Error en login:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.error || error.response?.data || 'Error al iniciar sesión' 
-      };
+        // Si es un objeto con detail
+        if (typeof errorData === 'object' && errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+        // Si es un objeto con mensaje
+        else if (typeof errorData === 'object' && errorData.mensaje) {
+          errorMessage = errorData.mensaje;
+        }
+        // Si es un objeto con error
+        else if (typeof errorData === 'object' && errorData.error) {
+          errorMessage = errorData.error;
+        }
+        // Si es una cadena
+        else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+    
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async (userData) => {
     try {
+      setLoading(true);
+      setError(null);
+    
       const data = await authService.register(userData);
-      // CORRECCIÓN: El backend devuelve 'usuario', no 'user'
-      const newUser = data.usuario || data.user;
-      return { success: true, user: newUser };
-    } catch (error) {
-      console.error('Error en registro:', error);
-      return { 
-        success: false, 
-        error: error.response?.data || 'Error al registrar usuario' 
-      };
+      const user = data.usuario || data.user;
+    
+      if (user) {
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
+        navigate('/lecciones');
+      } else {
+        throw new Error('No se recibieron datos del usuario');
+      }
+    } catch (err) {
+      console.error('Error en registro:', err);
+    
+      // Manejar diferentes tipos de errores
+      let errorMessage = 'Error al registrarse';
+    
+      if (err.response?.data) {
+        const errorData = err.response.data;
+      
+        if (typeof errorData === 'object' && errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (typeof errorData === 'object' && errorData.mensaje) {
+          errorMessage = errorData.mensaje;
+        } else if (typeof errorData === 'object' && errorData.error) {
+          errorMessage = errorData.error;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+    
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
-
   const logout = async () => {
     try {
       // Finalizar sesión de estudio
