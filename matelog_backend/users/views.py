@@ -83,7 +83,7 @@ class UserProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GetChoicesView(APIView):
+class RegistrationChoicesView(APIView):
     """
     Vista para obtener choices de registro (grupos, especialidades, etc).
     Endpoint: GET /api/users/choices/
@@ -93,17 +93,3 @@ class GetChoicesView(APIView):
     def get(self, request):
         serializer = ChoicesSerializer()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class GetCSRFTokenView(APIView):
-    """
-    Vista para obtener CSRF token.
-    Endpoint: GET /api/users/csrf/
-    """
-    permission_classes = [AllowAny]
-    
-    def get(self, request):
-        from django.middleware.csrf import get_token
-        return Response({
-            'csrfToken': get_token(request)
-        }, status=status.HTTP_200_OK)
