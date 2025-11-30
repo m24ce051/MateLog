@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db import models
@@ -186,7 +188,7 @@ class TemaDetailView(APIView):
         
         return Response(tema_data, status=status.HTTP_200_OK)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class ValidarRespuestaView(APIView):
     """
     Vista para validar la respuesta de un ejercicio.
@@ -296,7 +298,7 @@ class ValidarRespuestaView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class FinalizarTemaView(APIView):
     """
     Vista para finalizar un tema y calcular el progreso.
@@ -452,7 +454,7 @@ class FinalizarTemaView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class VolverAlTemaView(APIView):
     """
     Vista para registrar cuando un usuario vuelve desde ejercicios al contenido del tema.
@@ -471,7 +473,7 @@ class VolverAlTemaView(APIView):
             'tema_id': tema.id
         }, status=status.HTTP_200_OK)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class ReintentarTemaView(APIView):
     """
     Vista para reintentar un tema.
