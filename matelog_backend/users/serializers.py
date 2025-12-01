@@ -99,6 +99,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer para perfil de usuario.
+    SOLO incluye campos que REALMENTE existen en el modelo.
     """
     class Meta:
         model = CustomUser
@@ -110,10 +111,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'especialidad', 
             'genero', 
             'edad',
-            'fecha_registro',
-            'ultima_actividad'
+            'date_joined',  # Este campo SÍ existe (viene de AbstractUser)
+            'last_login'     # Este campo SÍ existe (viene de AbstractUser)
         ]
-        read_only_fields = ['id', 'username', 'fecha_registro', 'ultima_actividad']
+        read_only_fields = ['id', 'username', 'date_joined', 'last_login']
 
 
 class ChoicesSerializer(serializers.Serializer):
