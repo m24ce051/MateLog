@@ -45,12 +45,19 @@ class UserLoginView(APIView):
         )
         
         if serializer.is_valid():
-            user = serializer.validated_data['user']
+            # El serializer puede devolver 'user' o 'usuario'
+            user = serializer.validated_data.get('user') or serializer.validated_data.get('usuario')
+            
+            if not user:
+                return Response({
+                    'error': 'Error en autenticación'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
             login(request, user)
             
             return Response({
                 'message': 'Inicio de sesión exitoso',
-                'user': UserProfileSerializer(user).data
+                'usuario': UserProfileSerializer(user).data
             }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)

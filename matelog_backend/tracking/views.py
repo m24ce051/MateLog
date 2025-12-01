@@ -28,10 +28,10 @@ class IniciarActividadView(APIView):
         
         usuario = request.user if request.user.is_authenticated else None
         
+        # Crear actividad SIN metadatos (el modelo no lo tiene)
         actividad = ActividadPantalla.objects.create(
             usuario=usuario,
-            tipo_pantalla=serializer.validated_data['tipo_pantalla'],
-            metadatos=serializer.validated_data.get('metadatos', {})
+            tipo_pantalla=serializer.validated_data['tipo_pantalla']
         )
         
         return Response({
@@ -155,11 +155,10 @@ class VolverContenidoView(APIView):
                 'error': 'tema_id es requerido'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Registrar como actividad
+        # Registrar como actividad SIN metadatos
         ActividadPantalla.objects.create(
             usuario=request.user,
-            tipo_pantalla='VOLVER_CONTENIDO',
-            metadatos={'tema_id': tema_id}
+            tipo_pantalla='VOLVER_CONTENIDO'
         )
         
         return Response({
