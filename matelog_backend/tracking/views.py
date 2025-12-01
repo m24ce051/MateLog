@@ -26,18 +26,32 @@ class IniciarActividadView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        usuario = request.user if request.user.is_authenticated else None
+        # Solo crear actividad si el usuario está autenticado
+        if not request.user.is_authenticated:
+            # Si no está autenticado, devolver respuesta exitosa pero sin crear registro
+            return Response({
+                'actividad_id': None,
+                'timestamp': timezone.now(),
+                'message': 'Tracking skipped for anonymous user'
+            }, status=status.HTTP_201_CREATED)
         
-        # Crear actividad SIN metadatos (el modelo no lo tiene)
-        actividad = ActividadPantalla.objects.create(
-            usuario=usuario,
-            tipo_pantalla=serializer.validated_data['tipo_pantalla']
-        )
-        
-        return Response({
-            'actividad_id': actividad.id,
-            'timestamp': actividad.timestamp_inicio
-        }, status=status.HTTP_201_CREATED)
+        # Usuario autenticado: crear actividad normalmente
+        try:
+            actividad = ActividadPantalla.objects.create(
+                usuario=request.user,
+                tipo_pantalla=serializer.validated_data['tipo_pantalla']
+            )
+            
+            return Response({
+                'actividad_id': actividad.id,
+                'timestamp': actividad.timestamp_inicio
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # Si falla, devolver error detallado
+            return Response({
+                'error': str(e),
+                'message': 'Error al crear actividad'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -56,6 +70,13 @@ class FinalizarActividadView(APIView):
         
         actividad_id = serializer.validated_data['actividad_id']
         
+        # Si el ID es None (usuario anónimo), devolver éxito sin hacer nada
+        if actividad_id is None:
+            return Response({
+                'message': 'Tracking skipped for anonymous user',
+                'duracion_segundos': 0
+            }, status=status.HTTP_200_OK)
+        
         try:
             actividad = ActividadPantalla.objects.get(id=actividad_id)
             actividad.timestamp_fin = timezone.now()
@@ -73,6 +94,11 @@ class FinalizarActividadView(APIView):
             return Response({
                 'error': 'Actividad no encontrada'
             }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'error': str(e),
+                'message': 'Error al finalizar actividad'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -155,12 +181,18 @@ class VolverContenidoView(APIView):
                 'error': 'tema_id es requerido'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Registrar como actividad SIN metadatos
-        ActividadPantalla.objects.create(
-            usuario=request.user,
-            tipo_pantalla='VOLVER_CONTENIDO'
-        )
-        
-        return Response({
-            'message': 'Acción registrada'
-        }, status=status.HTTP_200_OK)
+        # Registrar como actividad
+        try:
+            ActividadPantalla.objects.create(
+                usuario=request.user,
+                tipo_pantalla='VOLVER_CONTENIDO'
+            )
+            
+            return Response({
+                'message': 'Acción registrada'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'error': str(e),
+                'message': 'Error al registrar acción'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
