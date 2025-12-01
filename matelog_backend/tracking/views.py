@@ -1,15 +1,16 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.shortcuts import get_object_or_404
+from rest_framework.permissions import AllowAny
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from datetime import timedelta
-from .models import ActividadPantalla, SesionEstudio
-from .serializers import (ActividadPantallaSerializer, IniciarActividadSerializer,
-                          FinalizarActividadSerializer)
+from django.views.decorators.csrf import csrf_exempt
+from .models import ActividadPantalla, SesionEstudio, VolverContenido
+from .serializers import (
+    ActividadPantallaSerializer,
+    SesionEstudioSerializer,
+    VolverContenidoSerializer
+)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -18,39 +19,39 @@ class IniciarActividadView(APIView):
     Vista para iniciar tracking de una pantalla.
     Endpoint: POST /api/tracking/iniciar/
     """
-    permission_classes = [AllowAny]  # Permite tracking pre-login
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
-        serializer = IniciarActividadSerializer(data=request.data)
-        
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Solo crear actividad si el usuario está autenticado
-        if not request.user.is_authenticated:
-            # Si no está autenticado, devolver respuesta exitosa pero sin crear registro
-            return Response({
-                'actividad_id': None,
-                'timestamp': timezone.now(),
-                'message': 'Tracking skipped for anonymous user'
-            }, status=status.HTTP_201_CREATED)
-        
-        # Usuario autenticado: crear actividad normalmente
         try:
-            actividad = ActividadPantalla.objects.create(
-                usuario=request.user,
-                tipo_pantalla=serializer.validated_data['tipo_pantalla']
-            )
+            # Si el usuario no está autenticado, devolver respuesta exitosa sin crear registro
+            if not request.user.is_authenticated:
+                return Response({
+                    'actividad_id': None,
+                    'timestamp': timezone.now(),
+                    'message': 'Tracking skipped for anonymous user'
+                }, status=status.HTTP_201_CREATED)
             
-            return Response({
-                'actividad_id': actividad.id,
-                'timestamp': actividad.timestamp_inicio
-            }, status=status.HTTP_201_CREATED)
+            serializer = ActividadPantallaSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                usuario = request.user
+                
+                actividad = ActividadPantalla.objects.create(
+                    usuario=usuario,
+                    tipo_pantalla=serializer.validated_data['tipo_pantalla']
+                )
+                
+                return Response({
+                    'actividad_id': actividad.id,
+                    'timestamp': actividad.timestamp_inicio
+                }, status=status.HTTP_201_CREATED)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         except Exception as e:
-            # Si falla, devolver error detallado
             return Response({
-                'error': str(e),
-                'message': 'Error al crear actividad'
+                'error': f'Error al iniciar actividad: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -61,43 +62,38 @@ class FinalizarActividadView(APIView):
     Endpoint: POST /api/tracking/finalizar/
     """
     permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
-        serializer = FinalizarActividadSerializer(data=request.data)
-        
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        actividad_id = serializer.validated_data['actividad_id']
-        
-        # Si el ID es None (usuario anónimo), devolver éxito sin hacer nada
-        if actividad_id is None:
-            return Response({
-                'message': 'Tracking skipped for anonymous user',
-                'duracion_segundos': 0
-            }, status=status.HTTP_200_OK)
-        
         try:
+            actividad_id = request.data.get('actividad_id')
+            
+            # Si no hay actividad_id (usuario anónimo), devolver respuesta exitosa
+            if actividad_id is None:
+                return Response({
+                    'message': 'Tracking skipped for anonymous user',
+                    'duracion_segundos': 0
+                }, status=status.HTTP_200_OK)
+            
             actividad = ActividadPantalla.objects.get(id=actividad_id)
             actividad.timestamp_fin = timezone.now()
-            actividad.duracion_segundos = int(
-                (actividad.timestamp_fin - actividad.timestamp_inicio).total_seconds()
-            )
+            actividad.duracion_segundos = (
+                actividad.timestamp_fin - actividad.timestamp_inicio
+            ).total_seconds()
             actividad.save()
             
             return Response({
                 'message': 'Actividad finalizada',
                 'duracion_segundos': actividad.duracion_segundos
             }, status=status.HTTP_200_OK)
-        
+            
         except ActividadPantalla.DoesNotExist:
             return Response({
                 'error': 'Actividad no encontrada'
             }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({
-                'error': str(e),
-                'message': 'Error al finalizar actividad'
+                'error': f'Error al finalizar actividad: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -107,92 +103,105 @@ class IniciarSesionView(APIView):
     Vista para iniciar una sesión de estudio.
     Endpoint: POST /api/tracking/sesion/iniciar/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
-        # Finalizar sesión anterior si existe
-        sesion_activa = SesionEstudio.objects.filter(
-            usuario=request.user,
-            timestamp_fin__isnull=True
-        ).first()
-        
-        if sesion_activa:
-            sesion_activa.timestamp_fin = timezone.now()
-            sesion_activa.duracion_minutos = int(
-                (sesion_activa.timestamp_fin - sesion_activa.timestamp_inicio).total_seconds() / 60
-            )
-            sesion_activa.save()
-        
-        # Crear nueva sesión
-        nueva_sesion = SesionEstudio.objects.create(
-            usuario=request.user
-        )
-        
-        return Response({
-            'sesion_id': nueva_sesion.id,
-            'timestamp_inicio': nueva_sesion.timestamp_inicio
-        }, status=status.HTTP_201_CREATED)
+        try:
+            if not request.user.is_authenticated:
+                return Response({
+                    'error': 'Usuario no autenticado'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            serializer = SesionEstudioSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                sesion = SesionEstudio.objects.create(
+                    usuario=request.user,
+                    leccion=serializer.validated_data.get('leccion')
+                )
+                
+                return Response({
+                    'sesion_id': sesion.id,
+                    'timestamp': sesion.inicio
+                }, status=status.HTTP_201_CREATED)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Error al iniciar sesión: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class FinalizarSesionView(APIView):
     """
-    Vista para finalizar la sesión de estudio actual.
+    Vista para finalizar una sesión de estudio.
     Endpoint: POST /api/tracking/sesion/finalizar/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
-        sesion_activa = SesionEstudio.objects.filter(
-            usuario=request.user,
-            timestamp_fin__isnull=True
-        ).order_by('-timestamp_inicio').first()
-        
-        if not sesion_activa:
+        try:
+            sesion_id = request.data.get('sesion_id')
+            
+            sesion = SesionEstudio.objects.get(id=sesion_id)
+            sesion.fin = timezone.now()
+            sesion.duracion_minutos = (
+                sesion.fin - sesion.inicio
+            ).total_seconds() / 60
+            sesion.save()
+            
             return Response({
-                'error': 'No hay sesión activa'
+                'message': 'Sesión finalizada',
+                'duracion_minutos': sesion.duracion_minutos
+            }, status=status.HTTP_200_OK)
+            
+        except SesionEstudio.DoesNotExist:
+            return Response({
+                'error': 'Sesión no encontrada'
             }, status=status.HTTP_404_NOT_FOUND)
-        
-        sesion_activa.timestamp_fin = timezone.now()
-        sesion_activa.duracion_minutos = int(
-            (sesion_activa.timestamp_fin - sesion_activa.timestamp_inicio).total_seconds() / 60
-        )
-        sesion_activa.save()
-        
-        return Response({
-            'message': 'Sesión finalizada',
-            'duracion_minutos': sesion_activa.duracion_minutos
-        }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'error': f'Error al finalizar sesión: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VolverContenidoView(APIView):
     """
-    Vista para registrar cuando el usuario vuelve al contenido después de ejercicios.
-    Endpoint: POST /api/tracking/volver-contenido/
+    Vista para registrar cuando un usuario vuelve a ver contenido.
+    Endpoint: POST /api/tracking/volver/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
-        tema_id = request.data.get('tema_id')
-        
-        if not tema_id:
-            return Response({
-                'error': 'tema_id es requerido'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Registrar como actividad
         try:
-            ActividadPantalla.objects.create(
-                usuario=request.user,
-                tipo_pantalla='VOLVER_CONTENIDO'
-            )
+            if not request.user.is_authenticated:
+                return Response({
+                    'error': 'Usuario no autenticado'
+                }, status=status.HTTP_401_UNAUTHORIZED)
             
-            return Response({
-                'message': 'Acción registrada'
-            }, status=status.HTTP_200_OK)
+            serializer = VolverContenidoSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                volver = VolverContenido.objects.create(
+                    usuario=request.user,
+                    leccion=serializer.validated_data['leccion'],
+                    motivo=serializer.validated_data.get('motivo', '')
+                )
+                
+                return Response({
+                    'message': 'Registro de volver a contenido creado',
+                    'id': volver.id
+                }, status=status.HTTP_201_CREATED)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         except Exception as e:
             return Response({
-                'error': str(e),
-                'message': 'Error al registrar acción'
+                'error': f'Error al registrar volver: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

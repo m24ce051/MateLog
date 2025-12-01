@@ -3,8 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import login, logout
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from .serializers import (UserRegistrationSerializer, UserLoginSerializer, 
                           UserProfileSerializer, ChoicesSerializer)
 
@@ -16,6 +16,7 @@ class UserRegistrationView(APIView):
     Endpoint: POST /api/users/register/
     """
     permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -37,15 +38,12 @@ class UserLoginView(APIView):
     Endpoint: POST /api/users/login/
     """
     permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def post(self, request):
-        serializer = UserLoginSerializer(
-            data=request.data,
-            context={'request': request}
-        )
+        serializer = UserLoginSerializer(data=request.data, context={'request': request})
         
         if serializer.is_valid():
-            # El serializer puede devolver 'user' o 'usuario'
             user = serializer.validated_data.get('user') or serializer.validated_data.get('usuario')
             
             if not user:
@@ -53,14 +51,15 @@ class UserLoginView(APIView):
                     'error': 'Error en autenticación'
                 }, status=status.HTTP_401_UNAUTHORIZED)
             
+            # Iniciar sesión
             login(request, user)
             
             return Response({
-                'message': 'Inicio de sesión exitoso',
+                'message': 'Login exitoso',
                 'usuario': UserProfileSerializer(user).data
             }, status=status.HTTP_200_OK)
         
-        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -74,29 +73,56 @@ class UserLogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({
-            'message': 'Sesión cerrada exitosamente'
+            'message': 'Logout exitoso'
         }, status=status.HTTP_200_OK)
 
 
 class UserProfileView(APIView):
     """
-    Vista para obtener el perfil del usuario autenticado.
-    Endpoint: GET /api/users/profile/
+    Vista para obtener/actualizar perfil de usuario.
+    Endpoint: GET/PUT /api/users/profile/
     """
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        serializer = UserProfileSerializer(
+            request.user, 
+            data=request.data, 
+            partial=True
+        )
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegistrationChoicesView(APIView):
     """
-    Vista para obtener choices de registro (grupos, especialidades, etc).
+    Vista para obtener las opciones de registro.
     Endpoint: GET /api/users/choices/
     """
     permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
     
     def get(self, request):
-        serializer = ChoicesSerializer()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = ChoicesSerializer(data={})
+        serializer.is_valid()
+        return Response(serializer.data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetCSRFToken(APIView):
+    """
+    Vista para obtener CSRF token (ya no necesaria pero la dejamos por compatibilidad).
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Sin autenticación
+    
+    def get(self, request):
+        return Response({'detail': 'CSRF disabled'})
